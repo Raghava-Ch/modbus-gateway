@@ -1,0 +1,57 @@
+# gateway.toml — Example configuration for modbus-gateway
+# Run with: modbus-gateway run --config gateway.toml
+
+[general]
+log_level = "info"   # trace | debug | info | warn | error
+tui = true           # false → headless mode, structured logs to stderr
+
+# ── Optional traffic capture ────────────────────────────────────────────────
+[pcap]
+enabled = true
+path = "./traffic.pcap"
+
+[csv]
+enabled = true
+path = "./traffic.csv"
+
+# ── Upstream Listeners ──────────────────────────────────────────────────────
+
+[[upstream]]
+type = "tcp"
+bind = "0.0.0.0:5020" # Bind to 5020 to avoid permission issues with low ports like 502
+
+[[upstream]]
+type = "websocket"
+bind = "0.0.0.0:8502"
+idle_timeout_secs = 30
+max_sessions = 64
+require_subprotocol = true
+
+# ── Downstream Targets ──────────────────────────────────────────────────────
+
+# [[downstream]]
+# name = "tcp-slave"
+# type = "tcp"
+# address = "127.0.0.1:502" # localhost 502
+
+[[downstream]]
+name = "serial-slave"
+type = "serial"
+port = "/dev/cu.usbserial-A1010CA6"   # serial port /dev/cu.usbserial-A1010CA6. /dev/cu.usbmodem142203
+baud_rate = 115200                    # <-- Match your slave's baudrate (e.g. 9600, 19200, 115200)
+data_bits = 8                         # <-- Match your slave's data bits (typically 8)
+parity = "none"                       # <-- Match your slave's parity ("none", "even", "odd")
+stop_bits = 1                         # <-- Match your slave's stop bits (typically 1 or 2)
+response_timeout_ms = 2000            # Wait up to 2 seconds for a response
+
+# ── Routing Rules ───────────────────────────────────────────────────────────
+
+[[route]]
+type = "unit"
+unit_id = 1
+downstream = "serial-slave"
+
+# [[route]]
+# type = "unit"
+# unit_id = 10
+# downstream = "tcp-slave"

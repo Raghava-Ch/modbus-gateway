@@ -1,0 +1,61 @@
+[package]
+name = "modbus-gateway"
+version = "0.1.0"
+edition = "2021"
+authors = ["Raghava Ch <ch.raghava44@gmail.com>"]
+description = "Cross-platform Modbus gateway CLI & TUI powered by mbus-gateway"
+license = "MIT"
+repository = "https://github.com/Raghava-Ch/modbus-gateway"
+
+[[bin]]
+name = "modbus-gateway"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "z"       # Optimize aggressively for binary size
+lto = "fat"           # Perform cross-crate Link Time Optimization
+codegen-units = 1     # Slower compile time, but maximum optimization
+panic = "abort"       # Completely removes unwinding landing pads (saves massive space)
+strip = "debuginfo"   # Ensure no debug symbols linger
+
+[dependencies]
+# ── Modbus engine ──────────────────────────────────────────────────────────────
+modbus-rs = { version = "0.11.0", features = ["gateway"] }
+
+# ── Async runtime ──────────────────────────────────────────────────────────────
+tokio = { version = "1", features = [
+    "net", "sync", "rt", "rt-multi-thread",
+    "macros", "time", "signal",
+] }
+
+# ── CLI ────────────────────────────────────────────────────────────────────────
+clap = { version = "4.5", features = ["derive", "env"] }
+
+# ── Config ─────────────────────────────────────────────────────────────────────
+serde = { version = "1", features = ["derive"] }
+toml  = "0.8"
+
+# ── Logging / tracing ─────────────────────────────────────────────────────────
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+tui-logger         = { version = "0.15", features = ["tracing-support"] }
+
+# ── TUI ────────────────────────────────────────────────────────────────────────
+ratatui   = "0.29"
+crossterm = { version = "0.28", features = ["event-stream"] }
+
+# ── Utilities ──────────────────────────────────────────────────────────────────
+anyhow       = "1.0"
+thiserror    = "2"
+chrono       = { version = "0.4", features = ["serde"] }
+heapless     = "0.9"
+
+[features]
+# Forward the traffic feature to mbus-gateway; enabling this unlocks raw frame
+# callbacks (on_upstream_rx / on_downstream_tx / on_downstream_rx / on_upstream_tx)
+# in OrchestratorEventHandler.
+traffic = ["modbus-rs/traffic"]
+default = ["traffic"]
+
+[profile.dev]
+panic = "unwind"
