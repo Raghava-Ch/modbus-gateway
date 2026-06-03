@@ -215,7 +215,7 @@ impl TrafficSink {
 
             // ── Periodic flush (every 64 events) ──────────────────────────────
             flush_counter = flush_counter.wrapping_add(1);
-            if flush_counter % 64 == 0 {
+            if flush_counter.is_multiple_of(64) {
                 if let Some(w) = &mut pcap { w.flush().ok(); }
                 if let Some(w) = &mut csv  { w.flush().ok(); }
             }

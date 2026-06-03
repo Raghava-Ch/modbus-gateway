@@ -31,6 +31,7 @@ pub use modbus_rs::gateway::GatewayTransport;
 pub struct OrchestratorEventHandler {
     pub metrics: Arc<MetricsCollector>,
     pub traffic_tx: Option<mpsc::Sender<TrafficEvent>>,
+    pub pending_requests: std::collections::HashMap<usize, std::time::Instant>,
 }
 
 impl GatewayEventHandler for OrchestratorEventHandler {
@@ -59,11 +60,16 @@ impl GatewayEventHandler for OrchestratorEventHandler {
 
     #[cfg(feature = "traffic")]
     fn on_downstream_tx(&mut self, channel_idx: usize, frame: &[u8]) {
+        self.pending_requests.insert(channel_idx, std::time::Instant::now());
         self.emit(frame, TrafficDirection::DownstreamTx, channel_idx);
     }
 
     #[cfg(feature = "traffic")]
     fn on_downstream_rx(&mut self, _session_id: u8, channel_idx: usize, frame: &[u8]) {
+        if let Some(start_time) = self.pending_requests.remove(&channel_idx) {
+            let elapsed = start_time.elapsed().as_micros() as u64;
+            self.metrics.record_latency_us(elapsed);
+        }
         self.emit(frame, TrafficDirection::DownstreamRx, channel_idx);
     }
 

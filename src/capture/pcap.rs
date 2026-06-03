@@ -53,7 +53,7 @@ impl PcapWriter {
     /// Open (and truncate) a new PCAP file, writing the global header immediately.
     pub fn create(path: &str) -> AppResult<Self> {
         let file = std::fs::File::create(path)
-            .map_err(|e| AppError::Io(e))?;
+            .map_err(AppError::Io)?;
         let mut writer = BufWriter::new(file);
         write_global_header(&mut writer)?;
         Ok(Self {

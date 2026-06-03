@@ -22,8 +22,8 @@ pub enum AppEvent {
 ///
 /// Returns `Tick` if no event arrives within the deadline.
 pub fn next_event(timeout: Duration) -> AppResult<AppEvent> {
-    if event::poll(timeout).map_err(|e| crate::error::AppError::Io(e))? {
-        match event::read().map_err(|e| crate::error::AppError::Io(e))? {
+    if event::poll(timeout).map_err(crate::error::AppError::Io)? {
+        match event::read().map_err(crate::error::AppError::Io)? {
             Event::Key(k) => return Ok(AppEvent::Key(k)),
             Event::Resize(w, h) => return Ok(AppEvent::Resize(w, h)),
             _ => {}

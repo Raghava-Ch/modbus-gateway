@@ -727,9 +727,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-async"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1909a58b21b95cb8ab5349e10cefb3e13206155bdeebc13c0558390fc6ab3fcb"
+checksum = "1813bde3100aaf7e53134b22339dcac22fc7ee9703ed985a892e7cd32ee655f1"
 dependencies = [
  "heapless",
  "mbus-client",
@@ -742,9 +742,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-client"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a43bab8e1f55105913967fa1f8caafdeeb0939dde8bf71bf25bb6db4051beca"
+checksum = "72c714962b14ce28b4bce82d6fa2cde979c898d39b62c490a535e0c0203def88"
 dependencies = [
  "heapless",
  "mbus-core",
@@ -752,27 +752,27 @@ dependencies = [
 
 [[package]]
 name = "mbus-client-async"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fedd421e22b5f3d846ea3908bf56729f794c6716d2969ba11c2620f5f824ece"
+checksum = "48d0c96c2f4c6075ffd3a9ead19fd696c9cae66b0a7fe1846db39f25a2d4ff04"
 dependencies = [
  "mbus-async",
 ]
 
 [[package]]
 name = "mbus-core"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a181bc133b04b00c59fac865b86976b8c8e0bd5e4ab5c0295fa16141b9bad27"
+checksum = "819f593d48d9a6d8a27a77a080ddb38ecca46191528320e677658b892183f5bd"
 dependencies = [
  "heapless",
 ]
 
 [[package]]
 name = "mbus-gateway"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "411040f09f619e9befb727299a7d1f07342b2dda920563b40981462f903cee34"
+checksum = "34dc337456e82b3a9d2f832d1ff632b391deac86b992879e12b1a1b3ed553351"
 dependencies = [
  "heapless",
  "log",
@@ -785,9 +785,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-macros"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e01d8495c84113cef1dff258172c57ec2960a480318771bab8caa170406fed2b"
+checksum = "668eb085da13df868762d8092eeb41190162bbb08f99eb6bdcbfb01b5a2d8755"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -796,9 +796,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-network"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44c5367a9633d09909529ff58204df1ee3b9b799897519aec80149435bd44081"
+checksum = "deaa4eca62edb6e58355e742bf73770b4b763145d756828e52082d8df8d71913"
 dependencies = [
  "bytes",
  "futures-util",
@@ -810,9 +810,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-serial"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eee4841fa2871b8492d4deb054a4805ec6aa53aeb97b44bfddb02c26e70e32f9"
+checksum = "7247cc875038fadb1960f1733bc97f9279138eb2a073e6cd18263b54eb5e2a18"
 dependencies = [
  "heapless",
  "mbus-core",
@@ -823,9 +823,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-server"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6414a6f3e7b7ed45a6a1529c0529b622a766db871e8b8d3b8688baa9a1965c9f"
+checksum = "e74f00dfe513a25cc8faadca1b3d64d0c55c6391cebdcdd50af37e104ef2c6b4"
 dependencies = [
  "heapless",
  "mbus-core",
@@ -836,9 +836,9 @@ dependencies = [
 
 [[package]]
 name = "mbus-server-async"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5b2f9289f1b93cbd92f5f1607efc3c95f390e20434a1b7342eab628e715b1d3"
+checksum = "77b29cb694128b2afafc1a52a6d987df5303095f18eaffa3e073ffdcc6d4bce4"
 dependencies = [
  "mbus-async",
 ]
@@ -896,9 +896,9 @@ dependencies = [
 
 [[package]]
 name = "modbus-rs"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6e9394afab443c9f4a04a2882e5cabf430ebb01fbec95c053dbb939978468bb"
+checksum = "35c7ae245b02c3cd57ed69ef72f3d05ec9e9ff2d03c323b110f5809d097b09b3"
 dependencies = [
  "heapless",
  "mbus-async",

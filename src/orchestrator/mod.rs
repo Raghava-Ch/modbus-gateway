@@ -6,7 +6,8 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use modbus_rs::gateway::{
-    AsyncTcpGatewayServer, AsyncWsGatewayServer, GatewayShutdown, GatewayShutdownToken,
+    AsyncTcpGatewayServer, AsyncWsGatewayServer, AsyncSerialGatewayServer, SerialGatewayConfig,
+    GatewayShutdown, GatewayShutdownToken,
     UnitRouteTable, WsGatewayConfig,
     DownstreamConfig, SerialDownstreamConfig,
     transport_types::UnitIdOrSlaveAddr,
@@ -48,6 +49,29 @@ pub struct GatewayOrchestrator {
 impl GatewayOrchestrator {
     /// Build and start the orchestrator from a merged `AppConfig`.
     pub async fn start(cfg: &AppConfig) -> AppResult<Self> {
+        // ── Validate Serial Port Configurations ──────────────────────────────
+        let mut seen_ports = std::collections::HashSet::new();
+        for up in &cfg.upstream {
+            if let UpstreamConfig::Serial(sc) = up {
+                if !seen_ports.insert(&sc.port) {
+                    return Err(AppError::Config(format!(
+                        "serial port \"{}\" is configured multiple times as an upstream or downstream",
+                        sc.port
+                    )));
+                }
+            }
+        }
+        for ds in &cfg.downstream {
+            if let CfgDownstream::Serial(sc) = ds {
+                if !seen_ports.insert(&sc.port) {
+                    return Err(AppError::Config(format!(
+                        "serial port \"{}\" is configured multiple times as an upstream or downstream",
+                        sc.port
+                    )));
+                }
+            }
+        }
+
         let metrics = MetricsCollector::new();
 
         // ── Capture configuration ──────────────────────────────────────────────
@@ -283,7 +307,7 @@ impl GatewayOrchestrator {
 
                     // Flush every 64 events.
                     flush_ctr = flush_ctr.wrapping_add(1);
-                    if flush_ctr % 64 == 0 {
+                    if flush_ctr.is_multiple_of(64) {
                         if let Some(w) = &mut pcap { w.flush().ok(); }
                         if let Some(w) = &mut csv  { w.flush().ok(); }
                     }
@@ -336,6 +360,7 @@ async fn spawn_upstream_task(
     let handler = Arc::new(tokio::sync::Mutex::new(crate::orchestrator::session::OrchestratorEventHandler {
         metrics: metrics.clone(),
         traffic_tx: traffic_tx.clone(),
+        pending_requests: std::collections::HashMap::new(),
     }));
     // Note: Gateway timeout could be configurable later. Default to 2000ms.
     let response_timeout = Duration::from_millis(2000);
@@ -441,10 +466,77 @@ async fn spawn_upstream_task(
 
         // ── Serial upstream ────────────────────────────────────────────────────
         UpstreamConfig::Serial(sc) => {
-            warn!(
-                port = %sc.port,
-                "serial upstream support will be enabled in a future phase"
-            );
+            let port = sc.port.clone();
+            info!(port = %port, "starting Serial upstream server");
+
+            let mode = match sc.mode.to_lowercase().as_str() {
+                "rtu"   => SerialMode::Rtu,
+                "ascii" => SerialMode::Ascii,
+                _ => return Err(AppError::Config(format!("Invalid serial mode: {}", sc.mode))),
+            };
+            let baud_rate = match sc.baud_rate {
+                9600  => BaudRate::Baud9600,
+                19200 => BaudRate::Baud19200,
+                other => BaudRate::Custom(other),
+            };
+            let data_bits = match sc.data_bits {
+                5 => DataBits::Five,
+                6 => DataBits::Six,
+                7 => DataBits::Seven,
+                8 => DataBits::Eight,
+                _ => return Err(AppError::Config(format!("Invalid data bits: {}", sc.data_bits))),
+            };
+            let parity = match sc.parity.to_lowercase().as_str() {
+                "none" => Parity::None,
+                "even" => Parity::Even,
+                "odd"  => Parity::Odd,
+                _      => return Err(AppError::Config(format!("Invalid parity: {}", sc.parity))),
+            };
+
+            let serial_cfg = SerialGatewayConfig {
+                port: sc.port.clone(),
+                mode,
+                baud_rate,
+                data_bits,
+                stop_bits: sc.stop_bits,
+                parity,
+                response_timeout: Duration::from_millis(sc.response_timeout_ms),
+            };
+
+            let mut rx = shutdown_rx.clone();
+            tokio::spawn(async move {
+                loop {
+                    let mut rx_clone = rx.clone();
+                    let shutdown_future = async move {
+                        if *rx_clone.borrow() { return; }
+                        let _ = rx_clone.changed().await;
+                    };
+
+                    let result = AsyncSerialGatewayServer::serve_with_shutdown(
+                        serial_cfg.clone(),
+                        router.clone(),
+                        downstreams.clone(),
+                        handler.clone(),
+                        shutdown_future,
+                    )
+                    .await;
+
+                    match result {
+                        Ok(()) => {
+                            info!(port = %port, "Serial upstream server stopped cleanly");
+                            break;
+                        }
+                        Err(e) => {
+                            if *rx.borrow() { break; }
+                            error!(error = %e, port = %port, "Serial upstream error; restarting in 2s");
+                            tokio::select! {
+                                _ = tokio::time::sleep(Duration::from_secs(2)) => {}
+                                _ = rx.changed() => { break; }
+                            }
+                        }
+                    }
+                }
+            });
         }
     }
     Ok(())
