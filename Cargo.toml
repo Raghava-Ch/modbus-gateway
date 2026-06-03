@@ -1,6 +1,6 @@
 [package]
 name = "modbus-gateway"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Raghava Ch <ch.raghava44@gmail.com>"]
 description = "Cross-platform Modbus gateway CLI & TUI application powered by modbus-rs"
